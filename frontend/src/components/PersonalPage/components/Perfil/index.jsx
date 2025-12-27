@@ -145,7 +145,7 @@ export const Perfil = ({ user = { name: "" }, onUpdate }) => {
                     position: "top-right",
                     autoClose: 3000,
                     hideProgressBar: false,
-                    icon: ({ theme, type }) => <Save size={20} style={{ color: '#dc2626' }} />,
+                    icon: ({ theme, type }) => <Save size={20} style={{ color: '#ffffff' }} />,
                     style: {
                         background: '#ffffff',
                         color: '#dc2626',
@@ -226,7 +226,7 @@ export const Perfil = ({ user = { name: "" }, onUpdate }) => {
                     position: "top-right",
                     autoClose: 3000,
                     hideProgressBar: false,
-                    icon: ({ theme, type }) => <Camera size={20} style={{ color: '#dc2626' }} />,
+                    icon: ({ theme, type }) => <Camera size={20} style={{ color: '#ffffff' }} />,
                     style: {
                         background: '#ffffff',
                         color: '#dc2626',
@@ -268,7 +268,7 @@ export const Perfil = ({ user = { name: "" }, onUpdate }) => {
                     position: "top-right",
                     autoClose: 3000,
                     hideProgressBar: false,
-                    icon: ({ theme, type }) => <Trash2 size={20} style={{ color: '#dc2626' }} />,
+                    icon: ({ theme, type }) => <Trash2 size={20} style={{ color: '#ffffff' }} />,
                     style: {
                         background: '#ffffff',
                         color: '#dc2626',
@@ -357,7 +357,7 @@ export const Perfil = ({ user = { name: "" }, onUpdate }) => {
                     position: "top-right",
                     autoClose: 2000,
                     hideProgressBar: false,
-                    icon: ({ theme, type }) => <Save size={20} style={{ color: '#dc2626' }} />,
+                    icon: ({ theme, type }) => <Save size={20} style={{ color: '#ffffff' }} />,
                     style: {
                         background: '#ffffff',
                         color: '#dc2626',

@@ -116,7 +116,7 @@ export const Clients = () => {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
-        icon: ({ theme, type }) => <Check size={20} style={{ color: '#dc2626' }} />,
+        icon: ({ theme, type }) => <Check size={20} style={{ color: '#ffffff' }} />,
         style: {
           background: '#ffffff',
           color: '#dc2626',
