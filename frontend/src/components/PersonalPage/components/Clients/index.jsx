@@ -332,13 +332,10 @@ export const Clients = () => {
                     required: "Palavra-passe é obrigatória",
                     minLength: { value: 6, message: "A palavra-passe deve ter pelo menos 6 caracteres" },
                     validate: {
-                      complexity: (value) => {
-                        const hasUpperCase = /[A-Z]/.test(value);
-                        const hasLowerCase = /[a-z]/.test(value);
-                        const hasNumber = /[0-9]/.test(value);
-                        const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(value);
-                        return (hasUpperCase || hasLowerCase || hasNumber) && hasSymbol || "A palavra-passe deve conter letras/números E pelo menos um símbolo (!@#$...)";
-                      }
+                      hasUpperCase: (value) => /[A-Z]/.test(value) || "Deve conter pelo menos 1 letra maiúscula (A-Z)",
+                      hasLowerCase: (value) => /[a-z]/.test(value) || "Deve conter pelo menos 1 letra minúscula (a-z)",
+                      hasNumber: (value) => /[0-9]/.test(value) || "Deve conter pelo menos 1 número (0-9)",
+                      hasSymbol: (value) => /[!@#$%^&*(),.?":{}|<>]/.test(value) || "Deve conter pelo menos 1 símbolo (!@#$%...)"
                     }
                   })}
                   className={errors.password ? styles.inputError : ''}
@@ -364,7 +361,7 @@ export const Clients = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <small className={styles.hint}>Mín. 6 carateres, letras/números + símbolo</small>
+              <small className={styles.hint}>Mín. 6 carateres, maiúscula, minúscula, número e símbolo</small>
               {errors.password && <span className={styles.errorMessage}>{errors.password.message}</span>}
             </div>
 
