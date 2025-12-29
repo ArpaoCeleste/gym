@@ -111,7 +111,7 @@ const Header = () => {
       </nav>
 
       <div className={styles.rightSection}>
-  
+
         <button
           className={styles.themeToggle}
           onClick={toggleTheme}

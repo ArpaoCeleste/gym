@@ -1329,113 +1329,119 @@ export const WorkoutPlanner = () => {
                       </div>
                     )}
 
-                    {(() => {
-                      const originalSession = originalSessions[dayName];
-                      if (!originalSession) return true;
+                    {session.exercises && session.exercises.length > 0 && (
+                      <div className={styles.saveSessionSection}>
+                        {((new Date(dayInfo.date).setHours(parseInt(session.startTime.split(':')[0]), 0, 0, 0) - new Date()) / 36e5 >= 2) && (
 
-                      const currentExercises = session.exercises || [];
-                      const originalExercises = originalSession.exercises || [];
+                          <button
+                            className={styles.btnSaveSession}
+                            onClick={async () => {
+                              const originalSession = originalSessions[dayName];
+                              const currentExercises = session.exercises || [];
+                              const originalExercises = originalSession?.exercises || [];
 
-                      if (currentExercises.length !== originalExercises.length) return true;
+                              const hasChanges = !originalSession ||
+                                currentExercises.length !== originalExercises.length ||
+                                currentExercises.some((ex, idx) => {
+                                  const orig = originalExercises[idx];
+                                  if (!ex && !orig) return false;
+                                  if (!ex || !orig) return true;
+                                  return ex.name !== orig.name || ex.sets !== orig.sets || ex.reps !== orig.reps;
+                                });
 
-                      return currentExercises.some((ex, idx) => {
-                        const orig = originalExercises[idx];
-                        if (!ex && !orig) return false;
-                        if (!ex || !orig) return true;
-                        return ex.name !== orig.name || ex.sets !== orig.sets || ex.reps !== orig.reps;
-                      });
-                    })() && (
-                        <div className={styles.saveSessionSection}>
-                          {((new Date(dayInfo.date).setHours(parseInt(session.startTime.split(':')[0]), 0, 0, 0) - new Date()) / 36e5 >= 2) && (
+                              if (!hasChanges) {
+                                toast.info('Não foram feitas alterações', {
+                                  style: { background: '#1f2937', color: '#ffffff' },
+                                  progressClassName: 'toast-progress-dark'
+                                });
+                                return;
+                              }
 
-                            <button
-                              className={styles.btnSaveSession}
-                              onClick={async () => {
-                                const now = new Date();
-                                const [startHour, startMinute] = session.startTime.split(':');
-                                const sessionDateTime = new Date(dayInfo.date);
-                                sessionDateTime.setHours(parseInt(startHour), parseInt(startMinute), 0, 0);
-                                const hoursUntilSession = (sessionDateTime - now) / (1000 * 60 * 60);
+                              const now = new Date();
+                              const [startHour, startMinute] = session.startTime.split(':');
+                              const sessionDateTime = new Date(dayInfo.date);
+                              sessionDateTime.setHours(parseInt(startHour), parseInt(startMinute), 0, 0);
+                              const hoursUntilSession = (sessionDateTime - now) / (1000 * 60 * 60);
 
-                                if (hoursUntilSession < 2 && hoursUntilSession > 0) {
-                                  toast.error('Não é possível editar! Faltam menos de 2 horas para a sessão.', {
-                                    style: { background: '#ffffff', color: '#dc2626' },
-                                    progressClassName: 'toast-progress-red',
-                                    icon: <Save size={20} color="#ffffff" />
-                                  });
-                                  return;
-                                }
+                              if (hoursUntilSession < 2 && hoursUntilSession > 0) {
+                                toast.error('Não é possível editar! Faltam menos de 2 horas para a sessão.', {
+                                  style: { background: '#ffffff', color: '#dc2626' },
+                                  progressClassName: 'toast-progress-red',
+                                  icon: <Save size={20} color="#ffffff" />
+                                });
+                                return;
+                              }
 
-                                try {
-                                  const validExercises = session.exercises.filter(ex => ex && ex.name);
+                              try {
+                                const validExercises = session.exercises.filter(ex => ex && ex.name);
 
-                                  let currentPlanId = workoutPlan?._id;
+                                let currentPlanId = workoutPlan?._id;
 
-                                  if (!currentPlanId) {
-                                    const planResponse = await fetch('/api/workouts/plans', {
-                                      method: 'POST',
-                                      credentials: 'include',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({
-                                        clientId: selectedClient,
-                                        weeklyFrequency: parseInt(weeklyFrequency) || 1,
-                                        goal: planName || 'Hypertrophy',
-                                        name: planName,
-                                        startDate: new Date(),
-                                        notes: ''
-                                      })
-                                    });
-                                    const planData = await planResponse.json();
-                                    if (planData.success || planData._id) {
-                                      const newPlan = planData.plan || planData;
-                                      setWorkoutPlan(newPlan);
-                                      currentPlanId = newPlan._id;
-                                    } else {
-                                      throw new Error('Falha ao criar plano base');
-                                    }
-                                  }
-
-                                  const response = await fetch('/api/workouts/sessions', {
+                                if (!currentPlanId) {
+                                  const planResponse = await fetch('/api/workouts/plans', {
                                     method: 'POST',
                                     credentials: 'include',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
-                                      workoutPlanId: currentPlanId,
-                                      dayOfWeek: dayName,
-                                      startTime: session.startTime,
-                                      endTime: session.endTime,
-                                      exercises: validExercises.map((ex, idx) => ({
-                                        name: ex.name,
-                                        sets: ex.sets || 3,
-                                        reps: ex.reps || '12',
-                                        img: (ex.video || ex.videoLink) ? `https://img.youtube.com/vi/${(ex.video || ex.videoLink).match(/(?:v=|\/)([\w-]{11})/)?.[1]}/mqdefault.jpg` : (ex.img || ''),
-                                        videoLink: ex.video || ex.videoLink,
-                                        order: idx + 1
-                                      }))
+                                      clientId: selectedClient,
+                                      weeklyFrequency: parseInt(weeklyFrequency) || 1,
+                                      goal: planName || 'Hypertrophy',
+                                      name: planName,
+                                      startDate: new Date(),
+                                      notes: ''
                                     })
                                   });
-                                  const data = await response.json();
-                                  if (data.success) {
-                                    toast.success('Alterações guardadas!', {
-                                      style: { background: '#ffffff', color: '#dc2626' },
-                                      progressClassName: 'toast-progress-red',
-                                      icon: <Save size={20} color="#ffffffff" />
-                                    });
-                                    const updatedSessions = { ...sessions, [dayName]: data.session };
-                                    setSessions(updatedSessions);
-                                    setOriginalSessions(JSON.parse(JSON.stringify(updatedSessions)));
+                                  const planData = await planResponse.json();
+                                  if (planData.success || planData._id) {
+                                    const newPlan = planData.plan || planData;
+                                    setWorkoutPlan(newPlan);
+                                    currentPlanId = newPlan._id;
+                                  } else {
+                                    throw new Error('Falha ao criar plano base');
                                   }
-                                } catch (error) {
-                                  console.error('Error saving:', error);
-                                  toast.error('Erro ao guardar');
                                 }
-                              }}
-                            >
-                              Guardar Alterações
-                            </button>
-                          )}
-                        </div>
-                      )}
+
+                                const response = await fetch('/api/workouts/sessions', {
+                                  method: 'POST',
+                                  credentials: 'include',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    workoutPlanId: currentPlanId,
+                                    dayOfWeek: dayName,
+                                    startTime: session.startTime,
+                                    endTime: session.endTime,
+                                    exercises: validExercises.map((ex, idx) => ({
+                                      name: ex.name,
+                                      sets: ex.sets || 3,
+                                      reps: ex.reps || '12',
+                                      img: (ex.video || ex.videoLink) ? `https://img.youtube.com/vi/${(ex.video || ex.videoLink).match(/(?:v=|\/)([\w-]{11})/)?.[1]}/mqdefault.jpg` : (ex.img || ''),
+                                      videoLink: ex.video || ex.videoLink,
+                                      order: idx + 1
+                                    }))
+                                  })
+                                });
+                                const data = await response.json();
+                                if (data.success) {
+                                  toast.success('Alterações guardadas!', {
+                                    style: { background: '#ffffff', color: '#dc2626' },
+                                    progressClassName: 'toast-progress-red',
+                                    icon: <Save size={20} color="#ffffffff" />
+                                  });
+                                  const updatedSessions = { ...sessions, [dayName]: data.session };
+                                  setSessions(updatedSessions);
+                                  setOriginalSessions(JSON.parse(JSON.stringify(updatedSessions)));
+                                }
+                              } catch (error) {
+                                console.error('Error saving:', error);
+                                toast.error('Erro ao guardar');
+                              }
+                            }}
+                          >
+                            Guardar Alterações
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
