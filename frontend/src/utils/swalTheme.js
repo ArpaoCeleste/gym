@@ -2,7 +2,7 @@
 import Swal from 'sweetalert2';
 
 export const getSwalTheme = () => {
- 
+
     return {
         background: '#ffffff',
         color: '#1f2937',
