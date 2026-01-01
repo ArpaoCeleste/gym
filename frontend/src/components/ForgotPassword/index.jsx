@@ -2,14 +2,20 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col } from "reactstrap";
 import styles from "../LoginPage/styles.module.scss";
+import { useRedirectIfAuthenticated } from "../../hooks/useRedirectIfAuthenticated";
 
 
 const ForgotPassword = () => {
+  const { isFetching } = useRedirectIfAuthenticated();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  if (isFetching) {
+    return <div>Loading...</div>;
+  }
 
   const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

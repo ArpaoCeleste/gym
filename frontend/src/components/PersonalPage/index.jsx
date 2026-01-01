@@ -132,14 +132,21 @@ const PersonalPage = () => {
       title: "Logout",
       icon: <LogOut size={18} />,
       onClick: async () => {
-        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+          });
+        } catch (e) {
+          console.error('Logout error:', e);
+        }
         await showSwalSuccess({
           title: 'Logout com sucesso!',
           text: 'Até à próxima!',
           timer: 1500,
           showConfirmButton: false
         });
-        window.location.href = "/";
+        window.location.replace("/");
       }
     }
   ];

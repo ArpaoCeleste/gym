@@ -331,19 +331,82 @@ function AuthRouter() {
 
   /**
    * @swagger
+   * /auth/login-qr:
+   *   post:
+   *     summary: Login via QR Code
+   *     description: Authenticates a user using their user ID from a QR code scan
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - userId
+   *             properties:
+   *               userId:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Login successful
+   *       401:
+   *         description: User not found
+   */
+  router.route("/login-qr").post(async function (req, res) {
+    try {
+      const { userId } = req.body;
+
+      if (!userId) {
+        return res.status(400).send({ auth: false, message: 'ID do utilizador é obrigatório' });
+      }
+
+      const user = await Users.findUserById(userId);
+
+      if (!user) {
+        return res.status(401).send({ auth: false, message: 'Utilizador não encontrado' });
+      }
+
+      const response = Users.createToken(user);
+
+      const cookieOptions = {
+        httpOnly: false,
+        secure: false,
+        sameSite: "lax",
+        path: "/",
+      };
+
+      res.cookie("token", response.token, cookieOptions);
+      res.status(200).send(response);
+    } catch (err) {
+      console.error('QR Login error:', err);
+      if (err === 'User not found' || err.message === 'User not found') {
+        res.status(401).send({ auth: false, message: 'Utilizador não encontrado' });
+      } else {
+        res.status(401).send({ auth: false, message: 'Login QR falhou' });
+      }
+    }
+  });
+
+  /**
+   * @swagger
    * /auth/logout:
-   *   get:
+   *   post:
    *     summary: Logout user
    *     tags: [Auth]
    *     responses:
    *       200:
    *         description: Logout successful
    */
-  router.route("/logout").get(function (req, res, next) {
-    res.cookie("token", req.cookies.token, { httpOnly: true, maxAge: 0 });
+  router.route("/logout").post(function (req, res, next) {
+    res.clearCookie("token", {
+      httpOnly: false,
+      secure: false,
+      sameSite: "lax",
+      path: "/",
+    });
     res.status(200);
     res.send({ logout: true });
-    next();
   });
 
   router.route("/me").get(VerifyToken, function (req, res, next) {

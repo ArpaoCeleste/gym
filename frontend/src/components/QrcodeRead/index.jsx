@@ -1,35 +1,78 @@
 import _ from "lodash";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import styles from "./styles.module.scss";
 
 function QrcodeRead({ setDataLogin }) {
-    const [data, setData] = useState("no Result");
+    const [status, setStatus] = useState("A aguardar QR code...");
+    const [facingMode, setFacingMode] = useState("environment");
+
+    useEffect(() => {
+        console.log("QrcodeRead montado - scanner deveria iniciar");
+    }, []);
+
+    const toggleCamera = () => {
+        setFacingMode(prevMode => prevMode === "user" ? "environment" : "user");
+    };
+
+    const handleQRLogin = async (userId) => {
+        try {
+            setStatus("A fazer login...");
+            console.log("A tentar login com userId:", userId);
+
+            const response = await fetch('/api/auth/login-qr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ userId })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("Login OK:", data);
+                setStatus("Login com sucesso!");
+                setDataLogin({ success: true, userId });
+                window.dispatchEvent(new Event('auth-change'));
+                window.location.href = '/';
+            } else {
+                const error = await response.json();
+                console.log("Login erro:", error);
+                setStatus("Erro: " + (error.message || "Login falhou"));
+            }
+        } catch (err) {
+            console.error("QR Login error:", err);
+            setStatus("Erro de conexão");
+        }
+    };
 
     return (
         <div className={styles.qrCodeReader}>
             <Scanner
                 onScan={(results) => {
-                    if (!results || results.length === 0) return;
+                    console.log("onScan chamado:", results);
+                    if (results && results.length > 0) {
+                        const rawValue = results[0].rawValue;
+                        console.log("Valor lido:", rawValue);
 
-                    const scanned = results[0];
-
-                    const newResult = scanned.rawValue.split("&&");
-
-                    const data = {
-                        name: newResult[0],
-                        password: newResult[1],
-                        isQrCode: true,
-                    };
-
-                    setData(data);
-                    setDataLogin(data);
+                        if (rawValue && rawValue.startsWith("QRLOGIN:")) {
+                            const userId = rawValue.replace("QRLOGIN:", "");
+                            console.log("UserId:", userId);
+                            handleQRLogin(userId);
+                        }
+                    }
                 }}
-                onError={(error) => {}}
-                constraints={{ facingMode: "user" }}
-                scanDelay={300}
+                onError={(error) => {
+                    console.log("Scanner error:", error);
+                }}
+                constraints={{
+                    facingMode: facingMode,
+                }}
+                scanDelay={100}
             />
-            <p>{data.name}</p>
+            <button onClick={toggleCamera} className={styles.cameraToggle}>
+                Trocar Câmera ({facingMode === "user" ? "Frontal" : "Traseira"})
+            </button>
+            <p>{status}</p>
         </div>
     );
 };
