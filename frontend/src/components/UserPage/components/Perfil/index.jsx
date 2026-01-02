@@ -566,9 +566,32 @@ export const Perfil = ({ user = { name: "" }, onUpdate }) => {
                                     )}
                                 </div>
 
-                                <div className={styles.qrSection}>
-                                    <p className={styles.qrLabel}>QR Code Login</p>
-                                    <Qrcode user={user} />
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    margin: '1.5rem auto 0',
+                                    width: '100%',
+                                    maxWidth: '200px'
+                                }}>
+                                    <h3 style={{
+                                        color: '#ffffff',
+                                        marginBottom: '0.5rem',
+                                        fontSize: '1rem',
+                                        fontWeight: '600',
+                                        textAlign: 'center'
+                                    }}>Entrar com QR Code</h3>
+                                    <div style={{
+                                        backgroundColor: '#ffffff',
+                                        padding: '1rem',
+                                        borderRadius: '16px',
+                                        width: '100%',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                    }}>
+                                        <Qrcode user={user} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -813,6 +836,9 @@ export const Perfil = ({ user = { name: "" }, onUpdate }) => {
                     </div>
                 </div>
 
+
+
+
                 <div className={styles.trainerSection}>
                     <h3><UserCheck size={20} /> Personal Trainer</h3>
                     {user?.trainer || trainerInfo ? (
@@ -878,6 +904,7 @@ export const Perfil = ({ user = { name: "" }, onUpdate }) => {
                         </div>
                     )}
                 </div>
+
             </Container>
 
 
@@ -924,6 +951,8 @@ export const Perfil = ({ user = { name: "" }, onUpdate }) => {
                                         {isSubmittingRequest ? 'A enviar...' : 'Enviar Pedido'}
                                     </button>
                                 </div>
+
+
                             </div>
                         </div>
                     </div>
