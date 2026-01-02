@@ -60,15 +60,13 @@ const UsersRouter = (io) => {
 
       const filter = {};
       if (req.query.createdBy) filter.createdBy = req.query.createdBy;
-      // Handle role filtering logic if needed (e.g. searching for Users specifically)
-      // The original frontend logic filtered for "role.name === 'User' || scope.includes('user')"
-      // Implementing basic role.name filter support:
+
       if (req.query['role.name']) {
         filter['role.name'] = req.query['role.name'];
       } else {
-        // Exclude admins from the list
+   
         filter['role.scope'] = { $nin: ['admin'] };
-        filter['email'] = { $ne: 'admin@gym.com' }; // Explicit safety for the super admin
+        filter['email'] = { $ne: 'admin@gym.com' }; 
       }
 
       req.pagination = {
@@ -137,25 +135,21 @@ const UsersRouter = (io) => {
 
         console.log(role);
 
-        // ...existing code...
+     
         if (!role || !role.scope) {
           return res.status(400).send({ error: "Missing 'role' or 'role.scope' in request body" });
         }
 
-        // Admin pode criar qualquer tipo de usuário (User, Trainer, Admin, etc)
-        // Trainer pode criar apenas Users
-        // Validação removida para permitir flexibilidade
 
-        // Assign creator ID
         body.createdBy = req.userId;
 
-        // Se quem cria for um PT, associar automaticamente como treinador
+      
         const creator = await User.findById(req.userId);
         if (creator && (creator.role.name === 'Personal Trainer' || creator.role.name === 'Trainer')) {
           body.trainer = req.userId;
         }
 
-        // Explicitly check for existing user to avoid generic errors
+     
         const existingUser = await User.findOne({ email: body.email });
         if (existingUser) {
           return res.status(409).send({ error: "Este email já está registado." });
@@ -241,22 +235,21 @@ const UsersRouter = (io) => {
         let userId = req.params.userId;
         let body = req.body;
 
-        // ❌ REMOVER password do body - não pode ser atualizado por aqui
-        // Para alterar password, usar o endpoint /reset-password
+
         if (body.password) {
           delete body.password;
           console.log('Password update blocked - use password reset endpoint instead');
         }
 
-        // Validação de Promoção a PT: Impedir se tiver PT associado (trainer ou createdBy)
+   
         if (body.role && (body.role.name === 'Trainer' || body.role.name === 'Personal Trainer')) {
           const userToCheck = await User.findById(userId);
           if (userToCheck) {
-            // Verificação direta
+    
             if (userToCheck.trainer) {
               return res.status(400).send({ error: 'Não é possível promover: O utilizador tem um Personal Trainer associado.' });
             }
-            // Verificação por criador (fallback)
+         
             if (userToCheck.createdBy) {
               const creator = await User.findById(userToCheck.createdBy);
               if (creator && (creator.role.name === 'Personal Trainer' || creator.role.name === 'Trainer')) {
@@ -268,7 +261,7 @@ const UsersRouter = (io) => {
 
         const updatedUser = await Users.update(userId, body);
 
-        // Emit socket event for real-time updates
+      
         io.sockets.emit('admin_notifications', {
           message: 'update user',
           key: 'User',
@@ -572,7 +565,7 @@ const UsersRouter = (io) => {
 
         let trainerId = user.trainer;
 
-        // Fallback para createdBy se não tiver trainer definido
+  
         if (!trainerId && user.createdBy) {
           const creator = await User.findById(user.createdBy);
           if (creator && (creator.role.name === 'Personal Trainer' || creator.role.name === 'Trainer')) {
@@ -668,15 +661,14 @@ const UsersRouter = (io) => {
         const user = await User.findById(request.user);
         if (user) {
           user.trainer = null;
-          // Se o utilizador foi criado por este PT, limpar o createdBy também
-          // para garantir que o PT deixa de aparecer no perfil
+
           if (user.createdBy && user.createdBy.toString() === request.trainer.toString()) {
             user.createdBy = null;
           }
           await user.save();
         }
 
-        // Apagar planos de treino associados a este par user-trainer
+        
         await Workout.deleteMany({
           client: request.user,
           personalTrainer: request.trainer
